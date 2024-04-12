@@ -34,6 +34,7 @@ type Term struct {
 	Height StartAndEnd
 	Offset StartAndEnd
 }
+
 type StartAndEnd struct {
 	Start *big.Int
 	End   *big.Int

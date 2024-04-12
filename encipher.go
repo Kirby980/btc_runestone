@@ -7,17 +7,17 @@ import (
 	"sort"
 )
 
-func Encipher(runeStone RuneStone.RuneStone) *txscript.ScriptBuilder {
+func Encipher(runeStone RuneStone) *txscript.ScriptBuilder {
 	var payload []byte
 	if runeStone.etching != nil {
 		flags := big.NewInt(0)
-		EtchBigint := new(RuneStone.Flag)
-		EtchBigint = (*Flag)(big.NewInt(0))
-		EtchBigint.Set(flags)
+		Etch := new(Flag)
+		Etch = (*Flag)(big.NewInt(0))
+		Etch.Set(flags)
 		if runeStone.etching.terms != nil {
-			TermsBigint := new(RuneStone.Flag)
-			TermsBigint = (*Flag)(big.NewInt(1))
-			TermsBigint.Set(flags)
+			Terms := new(Flag)
+			Terms = (*Flag)(big.NewInt(1))
+			Terms.Set(flags)
 			fmt.Println(flags)
 		}
 		payload = append(payload, Encode(big.NewInt(2))...)
@@ -89,7 +89,7 @@ func Encipher(runeStone RuneStone.RuneStone) *txscript.ScriptBuilder {
 			return false
 		})
 
-		var previous = RuneStone.RuneId{big.NewInt(0), big.NewInt(0)}
+		var previous = RuneId{big.NewInt(0), big.NewInt(0)}
 		for _, edict := range edicts {
 			block, tx := previous.Delta(edict.id)
 			payload = append(payload, Encode(block)...)
@@ -113,7 +113,7 @@ func Encipher(runeStone RuneStone.RuneStone) *txscript.ScriptBuilder {
 	return builder
 }
 
-func (r *RuneStone.RuneId) Delta(next RuneStone.RuneId) (block *big.Int, tx *big.Int) {
+func (r *RuneId) Delta(next RuneId) (block *big.Int, tx *big.Int) {
 	block = next.block.Sub(next.block, r.block)
 
 	if block.Cmp(big.NewInt(0)) == 0 {
@@ -124,7 +124,7 @@ func (r *RuneStone.RuneId) Delta(next RuneStone.RuneId) (block *big.Int, tx *big
 	return block, tx
 }
 
-func (f *RuneStone.Flag) Set(flags *big.Int) {
+func (f *Flag) Set(flags *big.Int) {
 	flags.Or(flags, big.NewInt(1).Lsh(big.NewInt(1), uint((*big.Int)(f).Uint64())))
 }
 func Encode(n *big.Int) []byte {

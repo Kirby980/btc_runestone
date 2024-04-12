@@ -6,7 +6,7 @@ import (
 
 var char = []string{"A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"}
 
-func ToRune(x *big.Int) string {
+func ToRuneStone(x *big.Int) string {
 	var s string
 	flag := false
 	zero := big.NewInt(0)

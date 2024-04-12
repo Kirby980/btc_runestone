@@ -38,7 +38,7 @@ func Integers(payload []byte) []*big.Int {
 	}
 	return integers
 }
-func (e RuneStone.Edict) FromIntegersBigInt(tx wire.MsgTx, id *RuneStone.RuneId, amount, output *big.Int) *RuneStone.Edict {
+func (e Edict) FromIntegers(tx wire.MsgTx, id *RuneId, amount, output *big.Int) *Edict {
 	if id.block.Cmp(big.NewInt(0)) == 0 && id.tx.Cmp(big.NewInt(0)) > 0 {
 		return nil
 	}
@@ -46,14 +46,14 @@ func (e RuneStone.Edict) FromIntegersBigInt(tx wire.MsgTx, id *RuneStone.RuneId,
 		return nil
 	}
 	fmt.Println(id)
-	return &RuneStone.Edict{
+	return &Edict{
 		id:     *id,
 		amount: amount,
 		output: output,
 	}
 }
 
-func Decipher(transaction wire.MsgTx) *RuneStone.RuneStone {
+func Decipher(transaction wire.MsgTx) *RuneStone {
 	payload := Payload(transaction)
 	if payload == nil {
 		return nil
@@ -70,15 +70,15 @@ func Decipher(transaction wire.MsgTx) *RuneStone.RuneStone {
 	symbol := TakeTag(&message.fields, big.NewInt(5))
 	_ = TakeTag(&message.fields, big.NewInt(8))
 	flags := TakeTag(&message.fields, big.NewInt(2))
-	EtchBigInt := new(RuneStone.Flag)
-	EtchBigInt = (*Flag)(big.NewInt(0))
-	etch := EtchBigInt.TakeFlag(flags)
-	TermsBigint := new(RuneStone.Flag)
-	TermsBigint = (*Flag)(big.NewInt(1))
-	_ = TermsBigint.TakeFlag(flags)
-	var etching RuneStone.Etching
+	Etch := new(Flag)
+	Etch = (*Flag)(big.NewInt(0))
+	etch := Etch.TakeFlag(flags)
+	Terms := new(Flag)
+	Terms = (*Flag)(big.NewInt(1))
+	_ = Terms.TakeFlag(flags)
+	var etching Etching
 	if !etch {
-		etching = RuneStone.Etching{
+		etching = Etching{
 			divisibility: divisibility,
 			runes:        (*Rune)(runes),
 			spacers:      spacers,
@@ -96,7 +96,7 @@ func Decipher(transaction wire.MsgTx) *RuneStone.RuneStone {
 	if claim < uint64(len(message.edicts)) {
 		c = message.edicts[claim].id
 	}*/
-	return &RuneStone.RuneStone{
+	return &RuneStone{
 		edicts:  message.edicts,
 		etching: &etching,
 	}
@@ -122,31 +122,15 @@ func Payload(transaction wire.MsgTx) []byte {
 	}
 	return nil
 }
-
-func (e RuneStone.Edict) FromIntegers(tx wire.MsgTx, id *RuneStone.RuneId, amount, output *big.Int) *RuneStone.Edict {
-	if id.block.Cmp(big.NewInt(0)) == 0 && id.tx.Cmp(big.NewInt(0)) > 0 {
-		return nil
-	}
-	if output.Cmp(big.NewInt(int64(len(tx.TxOut)))) > 0 {
-		return nil
-	}
-	fmt.Println(id)
-	return &RuneStone.Edict{
-		id:     *id,
-		amount: amount,
-		output: output,
-	}
-}
-
-func FromIntegers(tx wire.MsgTx, payload []*big.Int) RuneStone.Message {
-	var edicts []RuneStone.Edict
+func FromIntegers(tx wire.MsgTx, payload []*big.Int) Message {
+	var edicts []Edict
 	fields := make(map[*big.Int]*big.Int)
 	cenotaph := false
 	for i := 0; i < len(payload); i += 2 {
 		tag := payload[i]
 
 		if tag.Cmp(big.NewInt(0)) == 0 {
-			id := RuneStone.RuneId{
+			id := RuneId{
 				block: big.NewInt(0),
 				tx:    big.NewInt(0),
 			}
@@ -160,7 +144,7 @@ func FromIntegers(tx wire.MsgTx, payload []*big.Int) RuneStone.Message {
 					cenotaph = true
 					break
 				}
-				edict := &RuneStone.Edict{}
+				edict := &Edict{}
 				if e := edict.FromIntegers(tx, next, payload[j+2], payload[j+3]); e != nil {
 					edicts = append(edicts, *e)
 				} else {
@@ -180,14 +164,14 @@ func FromIntegers(tx wire.MsgTx, payload []*big.Int) RuneStone.Message {
 	fmt.Println(edicts)
 	fmt.Println(fields)
 
-	return RuneStone.Message{
+	return Message{
 		cenotaph: cenotaph,
 		edicts:   edicts,
 		fields:   fields,
 	}
 }
 
-func (id *RuneStone.RuneId) nextBigInt(block *big.Int, tx *big.Int) (*RuneStone.RuneId, error) {
+func (id *RuneId) nextBigInt(block *big.Int, tx *big.Int) (*RuneId, error) {
 	newBlock := id.block.Add(id.block, block)
 
 	var newTx *big.Int
@@ -197,7 +181,7 @@ func (id *RuneStone.RuneId) nextBigInt(block *big.Int, tx *big.Int) (*RuneStone.
 		newTx = tx
 	}
 
-	return &RuneStone.RuneId{block: newBlock, tx: newTx}, nil
+	return &RuneId{block: newBlock, tx: newTx}, nil
 }
 
 func TakeTag(fields *map[*big.Int]*big.Int, tag *big.Int) *big.Int {
@@ -208,7 +192,7 @@ func TakeTag(fields *map[*big.Int]*big.Int, tag *big.Int) *big.Int {
 	delete(*fields, tag)
 	return value
 }
-func (f *RuneStone.Flag) TakeFlag(flags *big.Int) bool {
+func (f *Flag) TakeFlag(flags *big.Int) bool {
 	set := flags.And(flags, (*big.Int)(f)).Cmp(big.NewInt(0)) != 0
 
 	not := new(big.Int).Not((*big.Int)(f))
@@ -216,7 +200,7 @@ func (f *RuneStone.Flag) TakeFlag(flags *big.Int) bool {
 	return set
 }
 
-func (id *RuneStone.RuneId) Next(block *big.Int, tx *big.Int) (*RuneStone.RuneId, error) {
+func (id *RuneId) Next(block *big.Int, tx *big.Int) (*RuneId, error) {
 	newBlock := id.block.Add(id.block, block)
 
 	var newTx *big.Int
@@ -226,5 +210,5 @@ func (id *RuneStone.RuneId) Next(block *big.Int, tx *big.Int) (*RuneStone.RuneId
 		newTx = tx
 	}
 
-	return &RuneStone.RuneId{block: newBlock, tx: newTx}, nil
+	return &RuneId{block: newBlock, tx: newTx}, nil
 }
