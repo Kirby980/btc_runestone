@@ -1,24 +1,22 @@
 package btc_runestone
 
 import (
-	"fmt"
 	"github.com/btcsuite/btcd/txscript"
 	"math/big"
 	"sort"
 )
 
-func Encipher(runeStone RuneStone) *txscript.ScriptBuilder {
+func encipherBigInt(runeStone RuneStone) *txscript.ScriptBuilder {
 	var payload []byte
 	if runeStone.etching != nil {
 		flags := big.NewInt(0)
-		Etch := new(Flag)
-		Etch = (*Flag)(big.NewInt(0))
-		Etch.Set(flags)
+		EtchBigint := new(Flag)
+		EtchBigint = (*Flag)(big.NewInt(0))
+		EtchBigint.Set(flags)
 		if runeStone.etching.terms != nil {
-			Terms := new(Flag)
-			Terms = (*Flag)(big.NewInt(1))
-			Terms.Set(flags)
-			fmt.Println(flags)
+			TermsBigint := new(Flag)
+			TermsBigint = (*Flag)(big.NewInt(1))
+			TermsBigint.Set(flags)
 		}
 		payload = append(payload, Encode(big.NewInt(2))...)
 		payload = append(payload, Encode(flags)...)
@@ -91,12 +89,13 @@ func Encipher(runeStone RuneStone) *txscript.ScriptBuilder {
 
 		var previous = RuneId{big.NewInt(0), big.NewInt(0)}
 		for _, edict := range edicts {
+			temp := RuneId{new(big.Int).Set(edict.id.block), new(big.Int).Set(edict.id.tx)}
 			block, tx := previous.Delta(edict.id)
 			payload = append(payload, Encode(block)...)
 			payload = append(payload, Encode(tx)...)
 			payload = append(payload, Encode(edict.amount)...)
 			payload = append(payload, Encode(edict.output)...)
-			previous = edict.id
+			previous = temp
 		}
 	}
 	var builder = txscript.NewScriptBuilder().AddOp(txscript.OP_RETURN).AddOp(MAGIC_NUMBER)
