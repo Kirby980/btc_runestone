@@ -61,11 +61,11 @@ func Decipher(transaction wire.MsgTx) *RuneStone {
 	integers := Integers(payload)
 	message := FromIntegers(transaction, integers)
 	//claim := takeTag(&message.fields, 14)
-	_ = TakeTag(&message.fields, big.NewInt(10))
-	_ = TakeTag(&message.fields, big.NewInt(6))
+	_ = TakeTag(&message.fields, big.NewInt(TagAmount))
+	_ = TakeTag(&message.fields, big.NewInt(TagPremine))
 
-	_ = TakeTag(&message.fields, big.NewInt(8))
-	mint := TakeTag(&message.fields, big.NewInt(20))
+	_ = TakeTag(&message.fields, big.NewInt(TagCap))
+	mint := TakeTag(&message.fields, big.NewInt(TagMint))
 	mintID := &RuneId{}
 	if len(mint) > 0 {
 		mintID = &RuneId{
@@ -73,18 +73,18 @@ func Decipher(transaction wire.MsgTx) *RuneStone {
 			tx:    mint[1],
 		}
 	}
-	flags := TakeTag(&message.fields, big.NewInt(2))
-	spacers := TakeTag(&message.fields, big.NewInt(3))
-	runes := TakeTag(&message.fields, big.NewInt(4))
-	symbol := TakeTag(&message.fields, big.NewInt(5))
-	divisibility := TakeTag(&message.fields, big.NewInt(1))
+	flags := TakeTag(&message.fields, big.NewInt(TagFlags))
+	spacers := TakeTag(&message.fields, big.NewInt(TagSpacers))
+	runes := TakeTag(&message.fields, big.NewInt(TagRune))
+	symbol := TakeTag(&message.fields, big.NewInt(TagSymbol))
+	divisibility := TakeTag(&message.fields, big.NewInt(TagDivisibility))
 	var etching Etching
 	if len(flags) != 0 {
 		EtchBigInt := new(Flag)
-		EtchBigInt = (*Flag)(big.NewInt(0))
+		EtchBigInt = (*Flag)(big.NewInt(FlagEtching))
 		etch := EtchBigInt.TakeFlag(flags[0])
 		TermsBigint := new(Flag)
-		TermsBigint = (*Flag)(big.NewInt(1))
+		TermsBigint = (*Flag)(big.NewInt(FlagTerms))
 		_ = TermsBigint.TakeFlag(flags[0])
 		if !etch {
 			etching = Etching{
@@ -144,7 +144,7 @@ func FromIntegers(tx wire.MsgTx, payload []*big.Int) Message {
 	cenotaph := false
 	for i := 0; i < len(payload); i += 2 {
 		tag := payload[i]
-		if tag.Cmp(big.NewInt(0)) == 0 {
+		if tag.Cmp(big.NewInt(TagBody)) == 0 {
 			id := RuneId{
 				block: big.NewInt(0),
 				tx:    big.NewInt(0),

@@ -11,71 +11,71 @@ func encipherBigInt(runeStone RuneStone) *txscript.ScriptBuilder {
 	if runeStone.etching != nil {
 		flags := big.NewInt(0)
 		EtchBigint := new(Flag)
-		EtchBigint = (*Flag)(big.NewInt(0))
+		EtchBigint = (*Flag)(big.NewInt(FlagEtching))
 		EtchBigint.Set(flags)
 		if runeStone.etching.terms != nil {
 			TermsBigint := new(Flag)
-			TermsBigint = (*Flag)(big.NewInt(1))
+			TermsBigint = (*Flag)(big.NewInt(FlagTerms))
 			TermsBigint.Set(flags)
 		}
-		payload = append(payload, Encode(big.NewInt(2))...)
+		payload = append(payload, Encode(big.NewInt(TagFlags))...)
 		payload = append(payload, Encode(flags)...)
 		if (*big.Int)(runeStone.etching.runes) != nil {
-			payload = append(payload, Encode(big.NewInt(4))...)
+			payload = append(payload, Encode(big.NewInt(TagRune))...)
 			payload = append(payload, Encode((*big.Int)(runeStone.etching.runes))...)
 		}
 		if runeStone.etching.divisibility != nil {
-			payload = append(payload, Encode(big.NewInt(1))...)
+			payload = append(payload, Encode(big.NewInt(TagDivisibility))...)
 			payload = append(payload, Encode(runeStone.etching.divisibility)...)
 		}
 		if runeStone.etching.spacers != nil {
-			payload = append(payload, Encode(big.NewInt(3))...)
+			payload = append(payload, Encode(big.NewInt(TagSpacers))...)
 			payload = append(payload, Encode(runeStone.etching.spacers)...)
 		}
 		if runeStone.etching.symbol != "" {
-			payload = append(payload, Encode(big.NewInt(5))...)
+			payload = append(payload, Encode(big.NewInt(TagSymbol))...)
 			payload = append(payload, []byte(runeStone.etching.symbol)...)
 		}
 		if runeStone.etching.premine != nil {
-			payload = append(payload, Encode(big.NewInt(6))...)
+			payload = append(payload, Encode(big.NewInt(TagPremine))...)
 			payload = append(payload, Encode(runeStone.etching.premine)...)
 		}
 		if runeStone.etching.terms != nil {
-			payload = append(payload, Encode(big.NewInt(10))...)
+			payload = append(payload, Encode(big.NewInt(TagAmount))...)
 			payload = append(payload, Encode(runeStone.etching.terms.amount)...)
-			payload = append(payload, Encode(big.NewInt(8))...)
+			payload = append(payload, Encode(big.NewInt(TagCap))...)
 			payload = append(payload, Encode(runeStone.etching.terms.cap)...)
 			if runeStone.etching.terms.Height.Start != nil {
-				payload = append(payload, Encode(big.NewInt(12))...)
+				payload = append(payload, Encode(big.NewInt(TagHeightStart))...)
 				payload = append(payload, Encode(runeStone.etching.terms.Height.Start)...)
 			}
 			if runeStone.etching.terms.Height.End != nil {
-				payload = append(payload, Encode(big.NewInt(14))...)
+				payload = append(payload, Encode(big.NewInt(TagHeightEnd))...)
 				payload = append(payload, Encode(runeStone.etching.terms.Height.End)...)
 			}
 			if runeStone.etching.terms.Offset.Start != nil {
-				payload = append(payload, Encode(big.NewInt(16))...)
+				payload = append(payload, Encode(big.NewInt(TagOffsetStart))...)
 				payload = append(payload, Encode(runeStone.etching.terms.Offset.Start)...)
 			}
 			if runeStone.etching.terms.Offset.End != nil {
-				payload = append(payload, Encode(big.NewInt(18))...)
+				payload = append(payload, Encode(big.NewInt(TagOffsetEnd))...)
 				payload = append(payload, Encode(runeStone.etching.terms.Offset.End)...)
 			}
 		}
 	}
 
 	if runeStone.mint != nil {
-		payload = append(payload, Encode(big.NewInt(20))...)
+		payload = append(payload, Encode(big.NewInt(TagMint))...)
 		payload = append(payload, Encode(runeStone.mint.block)...)
-		payload = append(payload, Encode(big.NewInt(20))...)
+		payload = append(payload, Encode(big.NewInt(TagMint))...)
 		payload = append(payload, Encode(runeStone.mint.tx)...)
 	}
 	if runeStone.pointer != 0 {
-		payload = append(payload, Encode(big.NewInt(22))...)
+		payload = append(payload, Encode(big.NewInt(TagPointer))...)
 		payload = append(payload, Encode(new(big.Int).SetUint64(uint64(runeStone.pointer)))...)
 	}
 	if runeStone.edicts != nil {
-		payload = append(payload, Encode(big.NewInt(0))...)
+		payload = append(payload, Encode(big.NewInt(TagBody))...)
 		edicts := runeStone.edicts
 		sort.Slice(edicts, func(i, j int) bool {
 			if edicts[i].id.block.Cmp(edicts[j].id.block) < 0 {
