@@ -60,34 +60,49 @@ func Decipher(transaction wire.MsgTx) *RuneStone {
 	}
 	integers := Integers(payload)
 	message := FromIntegers(transaction, integers)
-	fmt.Println(message)
 	//claim := takeTag(&message.fields, 14)
 	_ = TakeTag(&message.fields, big.NewInt(10))
-	divisibility := TakeTag(&message.fields, big.NewInt(1))
 	_ = TakeTag(&message.fields, big.NewInt(6))
-	runes := TakeTag(&message.fields, big.NewInt(4))
-	spacers := TakeTag(&message.fields, big.NewInt(3))
-	symbol := TakeTag(&message.fields, big.NewInt(5))
+
 	_ = TakeTag(&message.fields, big.NewInt(8))
-	flags := TakeTag(&message.fields, big.NewInt(2))
-	Etch := new(Flag)
-	Etch = (*Flag)(big.NewInt(0))
-	etch := Etch.TakeFlag(flags)
-	Terms := new(Flag)
-	Terms = (*Flag)(big.NewInt(1))
-	_ = Terms.TakeFlag(flags)
-	var etching Etching
-	if !etch {
-		etching = Etching{
-			divisibility: divisibility,
-			runes:        (*Rune)(runes),
-			spacers:      spacers,
-			symbol:       cast.ToString(symbol),
+	mint := TakeTag(&message.fields, big.NewInt(20))
+	mintID := &RuneId{}
+	if len(mint) > 0 {
+		mintID = &RuneId{
+			block: mint[0],
+			tx:    mint[1],
 		}
 	}
-
+	flags := TakeTag(&message.fields, big.NewInt(2))
+	spacers := TakeTag(&message.fields, big.NewInt(3))
+	runes := TakeTag(&message.fields, big.NewInt(4))
+	symbol := TakeTag(&message.fields, big.NewInt(5))
+	divisibility := TakeTag(&message.fields, big.NewInt(1))
+	var etching Etching
+	if len(flags) != 0 {
+		EtchBigInt := new(Flag)
+		EtchBigInt = (*Flag)(big.NewInt(0))
+		etch := EtchBigInt.TakeFlag(flags[0])
+		TermsBigint := new(Flag)
+		TermsBigint = (*Flag)(big.NewInt(1))
+		_ = TermsBigint.TakeFlag(flags[0])
+		if !etch {
+			etching = Etching{
+				symbol: cast.ToString(symbol),
+			}
+		}
+		if len(runes) != 0 {
+			etching.runes = (*Rune)(runes[0])
+		}
+		if len(divisibility) != 0 {
+			etching.divisibility = divisibility[0]
+		}
+		if len(spacers) != 0 {
+			etching.spacers = spacers[0]
+		}
+	}
 	for _, value := range message.fields {
-		if value.Mod(value, big.NewInt(2)).Cmp(big.NewInt(0)) == 0 {
+		if value[0].Mod(value[0], big.NewInt(2)).Cmp(big.NewInt(0)) == 0 {
 			message.cenotaph = true
 			break
 		}
@@ -97,6 +112,7 @@ func Decipher(transaction wire.MsgTx) *RuneStone {
 		c = message.edicts[claim].id
 	}*/
 	return &RuneStone{
+		mint:    mintID,
 		edicts:  message.edicts,
 		etching: &etching,
 	}
@@ -124,22 +140,21 @@ func Payload(transaction wire.MsgTx) []byte {
 }
 func FromIntegers(tx wire.MsgTx, payload []*big.Int) Message {
 	var edicts []Edict
-	fields := make(map[*big.Int]*big.Int)
+	fields := make(map[*big.Int][]*big.Int)
 	cenotaph := false
 	for i := 0; i < len(payload); i += 2 {
 		tag := payload[i]
-
 		if tag.Cmp(big.NewInt(0)) == 0 {
 			id := RuneId{
 				block: big.NewInt(0),
 				tx:    big.NewInt(0),
 			}
 			for j := i + 1; j < len(payload); j += 4 {
-				if j+3 >= len(payload) {
+				if j+3 > len(payload) {
 					cenotaph = true
 					break
 				}
-				next, err := id.Next(payload[j], payload[j+1])
+				next, err := id.nextBigInt(payload[j], payload[j+1])
 				if err != nil {
 					cenotaph = true
 					break
@@ -157,13 +172,8 @@ func FromIntegers(tx wire.MsgTx, payload []*big.Int) Message {
 		if i+1 >= len(payload) {
 			break
 		}
-
-		fields[tag] = payload[i+1]
+		fields[tag] = append(fields[tag], payload[i+1])
 	}
-	fmt.Println(cenotaph)
-	fmt.Println(edicts)
-	fmt.Println(fields)
-
 	return Message{
 		cenotaph: cenotaph,
 		edicts:   edicts,
@@ -184,13 +194,15 @@ func (id *RuneId) nextBigInt(block *big.Int, tx *big.Int) (*RuneId, error) {
 	return &RuneId{block: newBlock, tx: newTx}, nil
 }
 
-func TakeTag(fields *map[*big.Int]*big.Int, tag *big.Int) *big.Int {
-	value, ok := (*fields)[tag]
-	if !ok {
-		return big.NewInt(0)
+func TakeTag(fields *map[*big.Int][]*big.Int, tag *big.Int) []*big.Int {
+	var result []*big.Int
+	for key, value := range *fields {
+		if key.Cmp(tag) == 0 {
+			result = append(result, value...)
+			delete(*fields, key)
+		}
 	}
-	delete(*fields, tag)
-	return value
+	return result
 }
 func (f *Flag) TakeFlag(flags *big.Int) bool {
 	set := flags.And(flags, (*big.Int)(f)).Cmp(big.NewInt(0)) != 0

@@ -18,7 +18,7 @@ const (
 type Message struct {
 	cenotaph bool
 	edicts   []Edict
-	fields   map[*big.Int]*big.Int
+	fields   map[*big.Int][]*big.Int
 }
 
 type Etching struct {
